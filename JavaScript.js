@@ -55,14 +55,19 @@ function handleOperator(nextOperator) {
         // BODMAS handler
         // Check if first operator is + or -
         if (operator === '+' || operator === '-') {
+            // If clicked button is * or / and there is no second operator
             if ( (nextOperator === '*' || nextOperator === '/') && !calculator.secondOperand ) {
+                // create a new property called secondOperand and store inputValue into it
                 const secondOperand = inputValue;
                 calculator.secondOperand = secondOperand;
+                // create a new property called secondOperator and store the clicked button value (* or /) into it
                 calculator.secondOperator = nextOperator;
+                // create a new property called waitingForThirdOperand and set value as true
                 calculator.waitingForThirdOperand = true;
 
                 console.log(calculator);
                 return;
+            // if the clicked button is * or / and there is a value stored in the secondOperator property
             } else if ( (nextOperator === '*' || nextOperator === '/') && calculator.secondOperator ) {
                 const result = calculate(calculator.secondOperand, inputValue, calculator.secondOperator);
                 calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
@@ -86,13 +91,13 @@ function handleOperator(nextOperator) {
                 return;
             }
         } // End BODMAS handler
+
+        const result = calculate(firstOperand, inputValue, operator);
+
+        calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+        calculator.firstOperand = result;
     }
     
-    const result = calculate(firstOperand, inputValue, operator);
-
-    calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
-    calculator.firstOperand = result;
-
     // if there is no second operand then change waitingForSecondOperand status to true;
     if (!calculator.secondOperand) {
         calculator.waitingForSecondOperand = true;
