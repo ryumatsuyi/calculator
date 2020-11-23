@@ -6,11 +6,13 @@ const calculator = {
 };
 
 function inputDigit(digit) {
-    const { displayValue, waitingForSecondOperand } = calculator;
-    
+    const { displayValue, waitingForSecondOperand, secondOperand} = calculator;
     if (waitingForSecondOperand === true) {
         calculator.displayValue = digit;
         calculator.waitingForSecondOperand = false;
+    } else if (secondOperand) {
+        calculator.displayValue = digit;
+        calculator.waitingForThirdOperand = false;
     } else {
         // Overwrite 'displayValue' if the current value is 0, otherwise append to it
         calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
@@ -50,13 +52,52 @@ function handleOperator(nextOperator) {
         // Update the firstOperand property
         calculator.firstOperand = inputValue;
     } else if (operator) {
-        const result = calculate(firstOperand, inputValue, operator);
+        // BODMAS handler
+        // Check if first operator is + or -
+        if (operator === '+' || operator === '-') {
+            if ( (nextOperator === '*' || nextOperator === '/') && !calculator.secondOperand ) {
+                const secondOperand = inputValue;
+                calculator.secondOperand = secondOperand;
+                calculator.secondOperator = nextOperator;
+                calculator.waitingForThirdOperand = true;
 
-        calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
-        calculator.firstOperand = result;
+                console.log(calculator);
+                return;
+            } else if ( (nextOperator === '*' || nextOperator === '/') && calculator.secondOperator ) {
+                const result = calculate(calculator.secondOperand, inputValue, calculator.secondOperator);
+                calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+                calculator.secondOperand = result;
+                calculator.secondOperator = nextOperator;
+                calculator.waitingForThirdOperand = true;
+
+                console.log(calculator);
+                return;
+            } else if ( ( (nextOperator === '+' || nextOperator === '-' || nextOperator === '=' ) && calculator.secondOperator) ) {
+                const result1 = calculate(calculator.secondOperand, inputValue, calculator.secondOperator);
+                const result2 = calculate(firstOperand, result1, operator);
+                calculator.displayValue = `${parseFloat(result2.toFixed(7))}`;
+                calculator.firstOperand = result2;
+                calculator.operator = nextOperator;
+                calculator.secondOperand = null;
+                calculator.secondOperator = null;
+                calculator.waitingForSecondOperand = true;
+
+                console.log(calculator);
+                return;
+            }
+        } // End BODMAS handler
+    }
+    
+    const result = calculate(firstOperand, inputValue, operator);
+
+    calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+    calculator.firstOperand = result;
+
+    // if there is no second operand then change waitingForSecondOperand status to true;
+    if (!calculator.secondOperand) {
+        calculator.waitingForSecondOperand = true;
     }
 
-    calculator.waitingForSecondOperand = true;
     calculator.operator = nextOperator;
     console.log(calculator);
 }
@@ -105,9 +146,9 @@ keys.addEventListener('click', (event) => {
     switch (value) {
         case '+':
         case '-':
+        case '=':
         case '*':
         case '/':
-        case '=':
             handleOperator(value);
             break;
         case '.':
@@ -144,4 +185,3 @@ function after each operation.
     */
     updateDisplay();
 });
-
